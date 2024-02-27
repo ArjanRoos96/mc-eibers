@@ -1,0 +1,40 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app using a container
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Development
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Create .env file
+        uses: SpicyPizza/create-envfile@v2.0.2
+        with:
+          envkey_DATABASE_URL: "file:./dev.db"
+  
+
+      - name: check env file
+        run: |
+          cat .env
+
+      - name: docker build & push
+        run: |
+          docker build -t mc-eibers .
+          docker tag mc-eibers ${{ vars.DOCKER_SERVER }}/${{ vars.DOCKER_REGISTERY_NAME }}/mc-eibers:${{ vars.DOCKER_ENV_TAG }}
+          docker login ${{ vars.DOCKER_SERVER }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push ${{ vars.DOCKER_SERVER }}/${{ vars.DOCKER_REGISTERY_NAME }}/mc-eibers:${{ vars.DOCKER_ENV_TAG }}
