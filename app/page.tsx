@@ -9,7 +9,7 @@ const refresh: boolean = false;
 export default async function Home() {
 
   const readyOrders = await prisma.order.findMany({
-    take: 3,
+    take: 10,
     where: {
       timestamp: {
         lte: new Date(Date.now()),
@@ -36,7 +36,7 @@ export default async function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-16">
-      <meta http-equiv="refresh" content="10" ></meta>
+      {/* <meta http-equiv="refresh" content="10" ></meta> */}
       <div className="w-full flex">
         <div className="w-5/12">
           <PickUp data={readyOrders ? readyOrders : []} />
@@ -47,7 +47,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="w-5/12">
-          <Served data={pastOrders} />
+          <Served data={pastOrders ? pastOrders : []} />
         </div>
       </div>
     </main>

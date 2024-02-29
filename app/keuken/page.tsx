@@ -3,31 +3,35 @@ import { prisma } from '@/lib/database/orders'
 import { revalidatePath } from 'next/cache'
 
 export default async function Kitchen() {
+
     const pastOrders = await prisma.order.findMany({
-        take: 10
+        take: 10,
+        orderBy: {
+            timestamp: 'desc'
+        }
     })
 
     const addOrder = async (formData: FormData) => {
         'use server'
-        console.log('add an order')
+        
         const ordernumber = formData.get('ordernummer')
         await prisma.order.create({
             data: {
                 orderNumber: ordernumber as string
             }
         })
+
+        // Reload the pages
         revalidatePath('/keuken')
         revalidatePath('/')
     }
 
     const deleteOrder = async (formData: FormData) => {
         'use server'
-        console.log('delete an order')
-        const orderId = formData.get('id') as unknown
-        console.log('delete order: ' + orderId)
+        const orderId = Number(formData.get('id'))
         await prisma.order.delete({
             where: {
-                id: orderId as number,
+                id: orderId,
             }
         })
         revalidatePath('/keuken')
@@ -36,15 +40,16 @@ export default async function Kitchen() {
 
     return (
         <div className="w-full min-h-screen p-16">
-            <form action={addOrder}>
+            <form id='input-form' action={addOrder}>
                 <div>
-                    <input className='bg-gray-200 text-black shadow-inner rounded-l p-2 flex-1' id='ordernummer' name='ordernummer' type='number' aria-label='Ordernummer' placeholder='2024' required />
-                    <button className='bg-green-950 hover:bg-green-600 duration-300 text-white shadow p-2 rounded-r' type='submit'>
+                    <input className='bg-gray-200 text-black shadow-inner rounded-l w-full p-4 flex-1 mb-2' id='ordernummer' name='ordernummer' type='number' aria-label='Ordernummer' placeholder='2024' required />
+                    <button className='bg-green-950 hover:bg-green-600 duration-300 text-white shadow p-4 w-full rounded-r' type='submit'>
                         Omroepen
                     </button>
                 </div>
             </form>
-            <div className="w-full p-14">
+            <div className="w-full lg:p-14 mt-24">
+                <h1 className="text-2xl text-center bg-green-950 p-6 mb-8 rounded-3xl font-semibold">Recent Orders</h1>
                 { pastOrders.map((order: any) => {
                     return (
                         <div key={`order-` + order.id} className="w-full flex mx-auto mb-4 bg-green-950 rounded-3xl">
@@ -54,8 +59,8 @@ export default async function Kitchen() {
                             <div className="w-1/3 flex">
                                 <form key={`order-form-` + order.id} action={deleteOrder}>
                                     <input id="id" type="hidden" name="id" value={order.id} />
-                                    <button className="mx-auto" type="button">
-                                        <h2 className="text-red-600 text-center text-3xl py-4">X</h2>
+                                    <button className="bg-red-950 hover:bg-red-600 duration-300 text-white shadow p-3 mt-3 rounded-3xl" type="submit">
+                                        X
                                     </button>
                                 </form>
                             </div>
