@@ -6,6 +6,12 @@ export default async function Kitchen() {
 
     const pastOrders = await prisma.order.findMany({
         take: 10,
+        where: {
+            timestamp: {
+              lte: new Date(Date.now()),
+              gte: new Date(Date.now() - 1000 * 10 * 60)
+            }
+          },
         orderBy: {
             timestamp: 'desc'
         }
@@ -13,7 +19,7 @@ export default async function Kitchen() {
 
     const addOrder = async (formData: FormData) => {
         'use server'
-        
+
         const ordernumber = formData.get('ordernummer')
         await prisma.order.create({
             data: {
